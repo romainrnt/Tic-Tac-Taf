@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4efe4;
+  --foreground: #2a211b;
+  --muted: #7a685b;
+  --line: #e2d3c2;
+  --card: #fffaf3;
+  --stamp: #d85a32;
+  --stamp-ink: #fff8f4;
+  --duty: #1d7a5f;
+}
+
+.dark {
+  --background: #171311;
+  --foreground: #f6eee6;
+  --muted: #c2b1a3;
+  --line: #3c322c;
+  --card: #241c18;
+  --stamp: #ff8b5a;
+  --stamp-ink: #2a140e;
+  --duty: #7ddec0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-card: var(--card);
+  --color-stamp: var(--stamp);
+  --color-stamp-ink: var(--stamp-ink);
+  --color-duty: var(--duty);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-fraunces);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 8% -12%, color-mix(in srgb, var(--stamp) 22%, transparent), transparent 34%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Helvetica, Arial, sans-serif;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(var(--line) 0.8px, transparent 0.8px);
+  background-size: 22px 22px;
+  opacity: 0.7;
+}
+
+::selection {
+  background: var(--stamp);
+  color: var(--stamp-ink);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 3px;
+}
+
+.tick-ring {
+  animation: tick 14s linear infinite;
+}
+
+@keyframes tick {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick-ring {
+    animation: none;
+  }
 }

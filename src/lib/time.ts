@@ -247,26 +247,6 @@ export function formatHourMinutes(durationMs: number): string {
 }
 
 /**
- * Reads a finished span the way a person would say it.
- *
- * @param durationMs Duration in milliseconds
- * @returns Short French reading of the span
- */
-export function formatSessionReading(durationMs: number): string {
-  const minutes = Math.max(0, Math.floor(durationMs / 60000));
-  if (minutes < 1) {
-    return "un instant";
-  }
-  if (minutes === 1) {
-    return "1 minute";
-  }
-  if (minutes < 60) {
-    return `${minutes} minutes`;
-  }
-  return formatHourMinutes(durationMs);
-}
-
-/**
  * Formats a running duration as `4:12:08`.
  *
  * @param durationMs Duration in milliseconds

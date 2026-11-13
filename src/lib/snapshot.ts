@@ -52,14 +52,6 @@ export type DayView = {
   sessions: JournalSession[];
 };
 
-export type WeekGroup = {
-  id: string;
-  label: string;
-  totalLabel: string;
-  totalMs: number;
-  days: DayView[];
-};
-
 export type TrackerSnapshot = {
   renderedAt: number;
   status: "en_poste" | "hors_poste";
@@ -75,8 +67,6 @@ export type TrackerSnapshot = {
   weekClosedMs: number;
   weekOpenStartedAt: string | null;
   goalMs: number;
-  historyWeeks: WeekGroup[];
-  canUndo: boolean;
 };
 
 type SessionDraft = {
@@ -206,7 +196,7 @@ function pairDaySessions(
  * @param dateKey YYYY-MM-DD civil date
  * @param entries Punches recorded on that day
  * @param now Current instant
- * @returns Day ready for the dashboard and the history
+ * @returns Day ready for the dashboard
  */
 export function buildDayView(dateKey: string, entries: StoredEntry[], now: Date): DayView {
   const noon = dateKeyToNoon(dateKey);
@@ -261,48 +251,11 @@ export function buildDayView(dateKey: string, entries: StoredEntry[], now: Date)
 }
 
 /**
- * Groups recorded days into ISO weeks, newest week first.
- *
- * @param days Days that contain at least one punch
- * @returns Week sections for the history page
- */
-function groupHistory(days: DayView[]): WeekGroup[] {
-  const groups = new Map<string, WeekGroup>();
-
-  for (const day of days) {
-    const iso = readIsoWeek(day.key);
-    const id = `${iso.year}-W${String(iso.week).padStart(2, "0")}`;
-    const existing = groups.get(id);
-    if (existing) {
-      existing.days.push(day);
-      existing.totalMs += day.displayMs;
-      existing.totalLabel = formatHourMinutes(existing.totalMs);
-      continue;
-    }
-
-    groups.set(id, {
-      id,
-      label: `Semaine ${iso.week}`,
-      totalLabel: formatHourMinutes(day.displayMs),
-      totalMs: day.displayMs,
-      days: [day],
-    });
-  }
-
-  return [...groups.values()]
-    .map((group) => ({
-      ...group,
-      days: [...group.days].sort((left, right) => left.key.localeCompare(right.key)),
-    }))
-    .sort((left, right) => right.id.localeCompare(left.id));
-}
-
-/**
  * Builds the full tracker view from raw punches.
  *
  * @param entries Every stored punch, in any order
  * @param now Instant used as "today" and as the end of an open session
- * @returns Dashboard and history snapshot
+ * @returns Dashboard snapshot
  */
 export function buildSnapshot(entries: StoredEntry[], now: Date): TrackerSnapshot {
   const sorted = [...entries].sort(
@@ -327,10 +280,6 @@ export function buildSnapshot(entries: StoredEntry[], now: Date): TrackerSnapsho
     return buildDayView(key, byDay.get(key) ?? [], now);
   });
   const today = weekDays[weekdayIndex] ?? buildDayView(todayKey, [], now);
-  const recordedDays = [...byDay.keys()]
-    .filter((key) => key <= todayKey)
-    .sort((left, right) => right.localeCompare(left))
-    .map((key) => buildDayView(key, byDay.get(key) ?? [], now));
   const lastToday = byDay.get(todayKey)?.at(-1) ?? null;
   const weekClosedMs = weekDays.reduce((sum, day) => sum + day.closedMs, 0);
   const iso = readIsoWeek(todayKey);
@@ -352,7 +301,5 @@ export function buildSnapshot(entries: StoredEntry[], now: Date): TrackerSnapsho
     weekClosedMs,
     weekOpenStartedAt: today.openStartedAt,
     goalMs: WEEKLY_GOAL_MS,
-    historyWeeks: groupHistory(recordedDays),
-    canUndo: sorted.length > 0,
   };
 }

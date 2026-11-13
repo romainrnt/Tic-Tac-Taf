@@ -109,34 +109,9 @@ export async function recordDeparture(): Promise<PunchOutcome> {
 }
 
 /**
- * Deletes the most recent punch when one exists.
- *
- * @returns Whether a punch was removed
- */
-export async function removeLatestEntry(): Promise<boolean> {
-  const latest = await prisma.timeEntry.findFirst({
-    orderBy: {
-      timestamp: "desc",
-    },
-  });
-
-  if (!latest) {
-    return false;
-  }
-
-  await prisma.timeEntry.delete({
-    where: {
-      id: latest.id,
-    },
-  });
-
-  return true;
-}
-
-/**
  * Loads the tracker snapshot for the current Paris day and week.
  *
- * @returns Dashboard and history data
+ * @returns Dashboard data
  */
 export async function loadTrackerSnapshot(): Promise<TrackerSnapshot> {
   await io();

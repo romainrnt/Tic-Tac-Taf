@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isValidAccessToken } from "@/lib/access";
-import { recordToggle, removeLatestEntry } from "@/lib/entries";
+import { recordArrival, recordDeparture } from "@/lib/entries";
 import { grantBrowserAccess, requireActionAccess } from "@/lib/session";
 
 export type UnlockState = {
@@ -11,23 +11,28 @@ export type UnlockState = {
 };
 
 /**
- * Records the next punch and refreshes the tracker pages.
+ * Refreshes the pages that show punches.
  */
-export async function togglePunch(): Promise<void> {
-  await requireActionAccess();
-  await recordToggle();
+function refreshTrackerPages(): void {
   revalidatePath("/");
-  revalidatePath("/historique");
 }
 
 /**
- * Deletes the latest punch and refreshes the tracker pages.
+ * Records an arrival, then refreshes the tracker pages.
  */
-export async function undoLatestPunch(): Promise<void> {
+export async function arrivePunch(): Promise<void> {
   await requireActionAccess();
-  await removeLatestEntry();
-  revalidatePath("/");
-  revalidatePath("/historique");
+  await recordArrival();
+  refreshTrackerPages();
+}
+
+/**
+ * Records a departure, then refreshes the tracker pages.
+ */
+export async function leavePunch(): Promise<void> {
+  await requireActionAccess();
+  await recordDeparture();
+  refreshTrackerPages();
 }
 
 /**
